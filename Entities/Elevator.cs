@@ -15,10 +15,11 @@ namespace Elevator
         public GameEnvironment Screen { get; set; }
         public int Speed { get; set; } = 800;
 
-        public Elevator(Building building, GameEnvironment screen)
+        public Elevator(Building building, GameEnvironment screen, int speed)
         {
             Building = building;
             Screen = screen;
+            Speed = speed;
         }
 
         public void ChangePosition(int step)

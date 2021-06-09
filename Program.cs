@@ -16,7 +16,7 @@ namespace Elevator
                    "R: Generate random passengers on random floors\n" +
                    "A: Enable automatic mode\n";
 
-            var gameEnvironment = new GameEnvironment(18, hotKeys);
+            var gameEnvironment = new GameEnvironment(18, hotKeys, 10);
             gameEnvironment.DrawScreen();
 
             while (true)
