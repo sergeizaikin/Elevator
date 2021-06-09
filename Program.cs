@@ -16,8 +16,8 @@ namespace Elevator
                    "R: Generate random passengers on random floors\n" +
                    "A: Enable automatic mode\n";
 
-            var Screen = new Screen(18, hotKeys);
-            Screen.DrawScreen();
+            var gameEnvironment = new GameEnvironment(18, hotKeys);
+            gameEnvironment.DrawScreen();
 
             while (true)
             {
@@ -26,19 +26,19 @@ namespace Elevator
                 switch (insertedkey)
                 {
                     case ConsoleKey.UpArrow:
-                        Screen.Elevator.ChangePosition(1);
+                        gameEnvironment.Elevator.ChangePosition(1);
                         break;
 
                     case ConsoleKey.DownArrow:
-                        Screen.Elevator.ChangePosition(-1);
+                        gameEnvironment.Elevator.ChangePosition(-1);
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        Screen.Elevator.GetPassengersFromFloor();
+                        gameEnvironment.Elevator.GetPassengersFromFloor();
                         break;
 
                     case ConsoleKey.RightArrow:
-                        Screen.Elevator.LeavePassengersOnFloor(1);
+                        gameEnvironment.Elevator.LeavePassengersOnFloor(1);
                         break;
 
                     case ConsoleKey.Q:
@@ -48,30 +48,30 @@ namespace Elevator
 
                         Console.Write("Enter a passengers quantity: ");
                         var waitingPassengers = int.Parse(Console.ReadLine());
-                        Screen.Building.AddPassengersToFloor(floor, waitingPassengers);
+                        gameEnvironment.Building.AddPassengersToFloor(floor, waitingPassengers);
                         break;
 
                     case ConsoleKey.W:
-                        Screen.Building.AddPassengersToFloor(Screen.Elevator.Position, 1);
+                        gameEnvironment.Building.AddPassengersToFloor(gameEnvironment.Elevator.Position, 1);
                         break;
 
                     case ConsoleKey.S:
-                        Screen.Elevator.LeavePassengersOnFloor(Screen.Elevator.PassengersQuantity);
+                        gameEnvironment.Elevator.LeavePassengersOnFloor(gameEnvironment.Elevator.PassengersQuantity);
                         break;
 
                     case ConsoleKey.R:
-                        Screen.Building.GenerateRandomPassengers();
+                        gameEnvironment.Building.GenerateRandomPassengers();
                         break;
 
                     case ConsoleKey.A:
-                        Screen.Elevator.AutomaticMode();
+                        gameEnvironment.AutomaticMode();
                         break;
 
                     default:
                         break;
                 }
 
-                Screen.DrawScreen();
+                gameEnvironment.DrawScreen();
             }
         }
     }

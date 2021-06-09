@@ -12,10 +12,10 @@ namespace Elevator
         public int PassengersQuantity { get; set; } = 0;
         public Building Building { get; set; }
         public int MaxPassengerCapacity { get; set; } = 15;
-        public Screen Screen { get; set; }
+        public GameEnvironment Screen { get; set; }
         public int Speed { get; set; } = 800;
 
-        public Elevator(Building building, Screen screen)
+        public Elevator(Building building, GameEnvironment screen)
         {
             Building = building;
             Screen = screen;
@@ -69,27 +69,7 @@ namespace Elevator
 
         }
 
-        public void AutomaticMode()
-        {
-            while (true)
-            {
-
-                if (ExistWaitingPassengers()) // If there are passengers waiting
-                {
-                    var maxWaitingFloor = GetLastWaitingFloor();
-                    GoToFloor(maxWaitingFloor);
-                    WayDown();
-                    LeavePassengersOnFloor(Screen.Elevator.PassengersQuantity);
-                    Screen.DrawScreen();
-                }
-                else
-                    Building.GenerateRandomPassengers();
-
-                Thread.Sleep(500);
-            }
-        }
-
-        private void GoToFloor(int targetFloor)
+        public void GoToFloor(int targetFloor)
         {
             if(Position > targetFloor)
             {
@@ -111,18 +91,7 @@ namespace Elevator
             }
         }
 
-        private int GetLastWaitingFloor()
-        {
-            for (int i = Building.FloorsQuantity - 1; i >= 0; i--)
-            {
-                if (Building.WaitingPassengers[i] > 0)
-                    return i;
-            }
-
-            return 0;
-        }
-
-        private void WayDown()
+        public void GoDownCollectingPassengers()
         {
             while(Position != 0)
             {
@@ -151,17 +120,6 @@ namespace Elevator
         {
             var nextPosition = Position + (int)direction;
             return nextPosition >= 0 ? nextPosition : 0;
-        }
-
-        private bool ExistWaitingPassengers()
-        {
-            for (int i = 1; i < Building.FloorsQuantity; i++)
-            {
-                if (Building.WaitingPassengers[i] > 0)
-                    return true;
-            }
-
-            return false;
         }
 
         private enum Direction

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Elevator
 {
-    class Screen
+    class GameEnvironment
     {
         public Elevator Elevator { get; set; }
         public Building Building { get; set; }
         public string HotKeyDestription { get; set; }
 
-        public Screen(int floorCount, string hotKeyDescription = "")
+        public GameEnvironment(int floorCount, string hotKeyDescription = "")
         {
             
             Building = new Building(floorCount, this);
@@ -47,5 +48,24 @@ namespace Elevator
             return result;
         }
 
+        public void AutomaticMode()
+        {
+            while (true)
+            {
+
+                if (Building.ExistWaitingPassengers())
+                {
+                    var maxWaitingFloor = Building.GetLastWaitingFloor();
+                    Elevator.GoToFloor(maxWaitingFloor);
+                    Elevator.GoDownCollectingPassengers();
+                    Elevator.LeavePassengersOnFloor(Elevator.PassengersQuantity); // Arriving to the first floor leave all passengers
+                    DrawScreen();
+                }
+                else
+                    Building.GenerateRandomPassengers();
+
+                Thread.Sleep(500);
+            }
+        }
     }
 }
