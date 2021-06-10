@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using Elevator.Entities;
+using static Elevator.Entities.Enums;
 
 namespace Elevator
 {
     class Elevator
     {
-        public int Position { get; set; } = 0;
-        public int PassengersQuantity { get; set; } = 0;
+        public int CurrentFloor { get; set; } = 0;
         public Building Building { get; set; }
-        public int MaxPassengerCapacity { get; set; } = 15;
+        public int MaxPassengerCapacity { get; set; } = 5;
         public GameEnvironment Screen { get; set; }
         public int Speed { get; set; } = 800;
+        public List<Passenger> Passengers { get; set; } = new List<Passenger>();
+        public Direction Direction { get; set; } = Direction.Up;
 
         public Elevator(Building building, GameEnvironment screen, int speed)
         {
@@ -24,109 +27,135 @@ namespace Elevator
 
         public void ChangePosition(int step)
         {
-            if (step + Position <= Building.FloorsQuantity - 1 && step + Position >= 0)
-                Position += step;
+            if (step + CurrentFloor <= Building.Floors.Count() - 1 && step + CurrentFloor >= 0)
+                CurrentFloor += step;
         }
 
-        public void AddPassengersToElevator(int additionalPassengersQuantity)
+        public void AddPassengersToElevator(List<Passenger> additionalPassengers)
         {
-            var freeSpace = MaxPassengerCapacity - PassengersQuantity;
-            int passengersToStay;
-            int passengersToEnter;
+            var passengersQuantity = Passengers.Count();
+            var additionalPassengersQuantity = additionalPassengers.Count();
 
-            if (PassengersQuantity + additionalPassengersQuantity > MaxPassengerCapacity)
+            var freeSpace = MaxPassengerCapacity - passengersQuantity;
+            int quantityOfPassengersToStay;
+            int quantityOfPassengersToEnter;
+
+            // If the lift capacity has been exceeded then we need to count how many can get in and how many will stay
+            // If no then we can take everybody
+            if (passengersQuantity + additionalPassengersQuantity > MaxPassengerCapacity)
             {
-                passengersToStay = additionalPassengersQuantity - freeSpace;
-                passengersToEnter = additionalPassengersQuantity - passengersToStay;
+                quantityOfPassengersToStay = additionalPassengersQuantity - freeSpace;
+                quantityOfPassengersToEnter = additionalPassengersQuantity - quantityOfPassengersToStay;
             }
             else
             {
-                passengersToStay = 0;
-                passengersToEnter = additionalPassengersQuantity;
+                quantityOfPassengersToEnter = additionalPassengersQuantity;
             }
 
-            PassengersQuantity += passengersToEnter;
-            Building.WaitingPassengers[Position] = Math.Abs(passengersToStay);
+            var passengersToEnter = additionalPassengers.Take(quantityOfPassengersToEnter).ToList();
+
+            Passengers.AddRange(passengersToEnter);
+            Building.RemovePassengersFromFloor(CurrentFloor, passengersToEnter);
         }
 
-        public void RemovePassengersFromElevator(int quantityOfPassengersToRemove)
+        public void GetAllPassengersFromFloor(Direction direction)
         {
-            if (PassengersQuantity >= quantityOfPassengersToRemove)
-                PassengersQuantity -= quantityOfPassengersToRemove;
-        }
-
-        public void GetPassengersFromFloor()
-        {
-            AddPassengersToElevator(Building.WaitingPassengers[Position]);
-        }
-
-        public void LeavePassengersOnFloor(int quantityOfPassengersToLeave)
-        {
-            if (PassengersQuantity >= quantityOfPassengersToLeave)
+            if (direction == Direction.Up)
             {
-                RemovePassengersFromElevator(quantityOfPassengersToLeave);
-                Building.WaitingPassengers[Position] += quantityOfPassengersToLeave;
+                AddPassengersToElevator(Building.GetFloorByNumber(CurrentFloor).WaitingPassengers.Where(x => x.DestinationFloor > CurrentFloor).ToList());
             }
+            else
+            {
+                AddPassengersToElevator(Building.GetFloorByNumber(CurrentFloor).WaitingPassengers.Where(x => x.DestinationFloor < CurrentFloor).ToList());
+            }
+        }
 
+        public void LeavePassengersOnFloor()
+        {
+            // We remove only passengers which destination is current floor
+            var passengersToLeave = Passengers.Where(p => p.DestinationFloor == CurrentFloor).ToList();
+            RemovePassengersFromElevator(passengersToLeave);
+
+            Building.AddPassengersToFloor(CurrentFloor, passengersToLeave);
+        }
+
+        private void RemovePassengersFromElevator(List<Passenger> passengersToLeave)
+        {
+            Passengers = Passengers.Except(passengersToLeave).ToList();
         }
 
         public void GoToFloor(int targetFloor)
         {
-            if(Position > targetFloor)
+            if (CurrentFloor > targetFloor)
             {
-                for (int i = Position; i >= targetFloor; i--)
+                for (int i = CurrentFloor; i >= targetFloor; i--)
                 {
-                    Position = i;
+                    CurrentFloor = i;
                     Screen.DrawScreen();
                     Thread.Sleep(Speed);
                 }
             }
-            else if (Position < targetFloor)
+            else if (CurrentFloor < targetFloor)
             {
-                for (int i = Position; i <= targetFloor; i++)
+                for (int i = CurrentFloor; i <= targetFloor; i++)
                 {
-                    Position = i;
+                    CurrentFloor = i;
                     Screen.DrawScreen();
                     Thread.Sleep(Speed);
                 }
             }
         }
 
-        public void GoDownCollectingPassengers()
+        public void GoUpDeliveringPassengers()
         {
-            while(Position != 0)
+            var lastFloor = Building.Floors.Last().Number;
+
+            while (CurrentFloor <= lastFloor)
             {
-                if (Building.WaitingPassengers[Position] > 0)
+                if (Building.GetFloorByNumber(CurrentFloor).WaitingPassengers.Count > 0)
                 {
-                    GetPassengersFromFloor();
+                    GetAllPassengersFromFloor(Direction.Up);
+                    if (Passengers.Count > 0)
+                        lastFloor = Passengers.OrderByDescending(p => p.DestinationFloor).First().DestinationFloor; // Update destination floor of the elevator to the highest floor of passengers
                     Screen.DrawScreen();
                     Thread.Sleep(Speed);
                 }
+                else
+                {
+                    if (CurrentFloor == 0)
+                        return;
+                }
 
-                Position = GetNextPosition(Direction.Down);
+                LeavePassengersOnFloor();
+                CurrentFloor = GetNextPosition(Direction.Up);
                 Screen.DrawScreen();
 
                 Thread.Sleep(Speed);
             }
+        }
 
-            if(Position == 0)
+        public void GoDownPickingUpPassengers()
+        {
+            while (CurrentFloor != 0)
             {
-                //GetPassengersFromFloor();
-                //Screen.DrawScreen();
-                //Thread.Sleep(Speed);
+                if (Building.GetFloorByNumber(CurrentFloor).WaitingPassengers.Count > 0)
+                {
+                    GetAllPassengersFromFloor(Direction.Down);
+                    Screen.DrawScreen();
+                    Thread.Sleep(Speed);
+                }
+
+                CurrentFloor = GetNextPosition(Direction.Down);
+                Screen.DrawScreen();
+
+                Thread.Sleep(Speed);
             }
         }
 
         private int GetNextPosition(Direction direction)
         {
-            var nextPosition = Position + (int)direction;
+            var nextPosition = CurrentFloor + (int)direction;
             return nextPosition >= 0 ? nextPosition : 0;
-        }
-
-        private enum Direction
-        {
-            Up = 1,
-            Down = -1
         }
     }
 }

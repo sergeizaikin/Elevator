@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using static Elevator.Entities.Enums;
 
 namespace Elevator
 {
@@ -14,7 +16,7 @@ namespace Elevator
 
         public GameEnvironment(int floorCount, string hotKeyDescription = "", int speed = 600)
         {
-            
+
             Building = new Building(floorCount, this);
             Elevator = new Elevator(Building, this, speed);
             HotKeyDestription = hotKeyDescription;
@@ -28,12 +30,12 @@ namespace Elevator
 
             screenDataNew += "---\n";
 
-            for (int i = Building.FloorsQuantity - 1; i >= 0; i--)
+            for (int i = Building.Floors.Count - 1; i >= 0; i--)
             {
 
-                var waitingOnFloor = Building.WaitingPassengers[i] > 0 ? Building.WaitingPassengers[i].ToString() : "";
-                var elevatorOrEmpty = i == Elevator.Position ? $"{Elevator.PassengersQuantity}" : "|";
-                var floorNum = FormatFloorNumber(i == 0 ? "T:" : $"{i.ToString()}:", Building.FloorsQuantity.ToString());
+                var waitingOnFloor = Building.GetFloorByNumber(i).WaitingPassengers.Count > 0 ? Building.GetFloorByNumber(i).WaitingPassengers.Count.ToString() : "";
+                var elevatorOrEmpty = i == Elevator.CurrentFloor ? $"{Elevator.Passengers.Count}" : "|";
+                var floorNum = FormatFloorNumber(i == 0 ? "T:" : $"{i.ToString()}:", Building.Floors.Count.ToString());
 
                 screenDataNew += $"{floorNum} {elevatorOrEmpty} {waitingOnFloor}\n";
 
@@ -41,6 +43,12 @@ namespace Elevator
 
             screenDataNew += "---\n";
             screenDataNew += $"Max capacity: {Elevator.MaxPassengerCapacity}\n";
+            screenDataNew += $"Passengers:\n";
+            foreach (var passenger in Elevator.Passengers)
+            {
+                screenDataNew += $"           {passenger.ToString()}\n";
+            }
+
             screenDataNew += "\n" + HotKeyDestription;
 
             if (ConsoleBuffer != "")
@@ -83,13 +91,43 @@ namespace Elevator
             string[] screenDataRowsOld = screenDataOld.Split('\n');
             string[] screenDataRowsNew = screenDataNew.Split('\n');
 
-            for (int i = 0; i < screenDataRowsOld.Length; i++)
+            if (screenDataRowsNew.Length > screenDataOld.Length)
             {
-                if(screenDataRowsOld[i] != screenDataRowsNew[i])
+                for (int i = 0; i < screenDataRowsNew.Length; i++)
                 {
-                    ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                    if (i < screenDataOld.Length)
+                    {
+                        if (screenDataRowsOld[i] != screenDataRowsNew[i])
+                        {
+                            ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                        }
+                    }
+                    else
+                    {
+                        ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                    }
+
                 }
             }
+            else
+            {
+                for (int i = 0; i < screenDataRowsOld.Length; i++)
+                {
+                    if (i < screenDataRowsNew.Length)
+                    {
+                        if (screenDataRowsOld[i] != screenDataRowsNew[i])
+                        {
+                            ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                        }
+                    }
+                    else
+                    {
+                        ReplaceConsoleLine(i, "");
+                    }
+
+                }
+            }
+
         }
 
         public void AutomaticMode()
@@ -97,16 +135,31 @@ namespace Elevator
             while (true)
             {
 
-                if (Building.ExistWaitingPassengers())
+                if (Building.ThereAreWaitingPassengers())
                 {
-                    var maxWaitingFloor = Building.GetLastWaitingFloor();
-                    Elevator.GoToFloor(maxWaitingFloor);
-                    Elevator.GoDownCollectingPassengers();
-                    Elevator.LeavePassengersOnFloor(Elevator.PassengersQuantity); // Arriving to the first floor leave all passengers
-                    DrawScreen();
+                    if (Elevator.Direction == Direction.Down)
+                    {
+                        var maxWaitingFloor = Building.GetLastWaitingFloor();
+                        Elevator.GoToFloor(maxWaitingFloor.Number);
+                        Elevator.GoDownPickingUpPassengers();
+                        Elevator.LeavePassengersOnFloor(); // Arriving to the first floor leave all passengers
+                        DrawScreen();
+                        Elevator.Direction = Direction.Up;
+                    }
+                    else
+                    {
+
+                        Building.ChangePassengersDestination();
+                        Elevator.GoUpDeliveringPassengers();
+                        Elevator.Direction = Direction.Down;
+                    }
+
                 }
                 else
+                {
                     Building.GenerateRandomPassengers();
+                    DrawScreen();
+                }
 
                 Thread.Sleep(500);
             }

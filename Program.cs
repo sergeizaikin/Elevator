@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Elevator.Entities;
+using System;
 
 namespace Elevator
 {
@@ -6,6 +7,7 @@ namespace Elevator
     {
         static void Main(string[] args)
         {
+
             var hotKeys = "Up Arrow: Go up\n" +
                    "Down Arrow: Go down \n" +
                    "Left Arrow: Get passengers from the elevator's floor\n" +
@@ -16,7 +18,7 @@ namespace Elevator
                    "R: Generate random passengers on random floors\n" +
                    "A: Enable automatic mode\n";
 
-            var gameEnvironment = new GameEnvironment(18, hotKeys, 10);
+            var gameEnvironment = new GameEnvironment(18, hotKeys, 700);
             gameEnvironment.DrawScreen();
 
             while (true)
@@ -34,11 +36,12 @@ namespace Elevator
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        gameEnvironment.Elevator.GetPassengersFromFloor();
+                        gameEnvironment.Elevator.GetAllPassengersFromFloor(Enums.Direction.Up);
+                        gameEnvironment.Elevator.GetAllPassengersFromFloor(Enums.Direction.Down);
                         break;
 
                     case ConsoleKey.RightArrow:
-                        gameEnvironment.Elevator.LeavePassengersOnFloor(1);
+                        gameEnvironment.Elevator.LeavePassengersOnFloor();
                         break;
 
                     case ConsoleKey.Q:
@@ -48,15 +51,15 @@ namespace Elevator
 
                         Console.Write("Enter a passengers quantity: ");
                         var waitingPassengers = int.Parse(Console.ReadLine());
-                        gameEnvironment.Building.AddPassengersToFloor(floor, waitingPassengers);
+                        gameEnvironment.Building.AddOnePassengerToFloor(floor, new Passenger(gameEnvironment.Building, floor));
                         break;
 
                     case ConsoleKey.W:
-                        gameEnvironment.Building.AddPassengersToFloor(gameEnvironment.Elevator.Position, 1);
+                        gameEnvironment.Building.AddOnePassengerToFloor(gameEnvironment.Elevator.CurrentFloor, new Passenger(gameEnvironment.Building, gameEnvironment.Elevator.CurrentFloor));
                         break;
 
                     case ConsoleKey.S:
-                        gameEnvironment.Elevator.LeavePassengersOnFloor(gameEnvironment.Elevator.PassengersQuantity);
+                        gameEnvironment.Elevator.LeavePassengersOnFloor();
                         break;
 
                     case ConsoleKey.R:
