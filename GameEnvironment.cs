@@ -78,7 +78,7 @@ namespace Elevator
             int y = Console.CursorTop;
 
             Console.SetCursorPosition(0, lineNumber);
-            Console.Write(new String(' ', 70));
+            Console.Write(new String(' ', 99));
             Console.SetCursorPosition(0, lineNumber);
             Console.WriteLine(newText);
 

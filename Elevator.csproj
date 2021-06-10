@@ -7,10 +7,14 @@
 
   <ItemGroup>
     <None Remove="Other data\Names.txt" />
+    <None Remove="Other data\Surenames.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Other data\Names.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Other data\Surenames.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

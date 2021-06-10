@@ -14,6 +14,7 @@ namespace Elevator.Entities
         public string Name { get; set; }
         public Building Building { get; set; }
         public Floor Floor { get; set; }
+        private int NameMaxLength { get; set; } = 30;
 
         public Passenger(int apartmentFloor, Building building, int currentFloor = 0)
         {
@@ -40,9 +41,11 @@ namespace Elevator.Entities
         private string GetRandomName()
         {
             var allNames = File.ReadAllLines(@"Other data\Names.txt");
-            var randomNumber = new Random().Next(allNames.Length - 1);
+            var allSurenames = File.ReadAllLines(@"Other data\Surenames.txt");
+            var randomNameNumber = new Random().Next(allNames.Length - 1);
+            var randomSurenameNumber = new Random().Next(allNames.Length - 1);
 
-            return allNames[randomNumber];
+            return $"{allNames[randomNameNumber]} {allSurenames[randomSurenameNumber]}";
         }
 
         public void TryToChangeDestination()
@@ -66,7 +69,7 @@ namespace Elevator.Entities
 
         public override string ToString()
         {
-            return $"Name:{Name} | Destination: {DestinationFloor} | Apartment: {ApartmentFloor}";
+            return $"Name:{Name}{new String(' ', NameMaxLength - Name.Length)} | Destination: {DestinationFloor} | Apartment: {ApartmentFloor}";
         }
 
     }

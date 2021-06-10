@@ -12,7 +12,7 @@ namespace Elevator
     {
         public int CurrentFloor { get; set; } = 0;
         public Building Building { get; set; }
-        public int MaxPassengerCapacity { get; set; } = 5;
+        public int MaxPassengerCapacity { get; set; } = 10;
         public GameEnvironment Screen { get; set; }
         public int Speed { get; set; } = 800;
         public List<Passenger> Passengers { get; set; } = new List<Passenger>();
@@ -127,7 +127,12 @@ namespace Elevator
                 }
 
                 LeavePassengersOnFloor();
-                CurrentFloor = GetNextPosition(Direction.Up);
+
+                if (CurrentFloor != lastFloor)
+                    CurrentFloor = GetNextPosition(Direction.Up);
+                else
+                    break;
+
                 Screen.DrawScreen();
 
                 Thread.Sleep(Speed);
