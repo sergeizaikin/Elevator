@@ -16,6 +16,7 @@ namespace Elevator
                    "W: Add passengers to the elevator's floor\n" +
                    "S: Leave all passengers on the elevator's floor\n" +
                    "R: Generate random passengers on random floors\n" +
+                   "D: Change speed\n" +
                    "A: Enable automatic mode\n";
 
             var gameEnvironment = new GameEnvironment(18, hotKeys, 700);
@@ -64,6 +65,12 @@ namespace Elevator
 
                     case ConsoleKey.R:
                         gameEnvironment.Building.GenerateRandomPassengers();
+                        break;
+
+                    case ConsoleKey.D:
+                        Console.Write("Enter new speed (1 - 10): ");
+                        var newSpeed = int.Parse(Console.ReadLine());
+                        gameEnvironment.Elevator.ChangeSpeed(newSpeed);
                         break;
 
                     case ConsoleKey.A:

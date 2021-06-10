@@ -43,13 +43,15 @@ namespace Elevator
 
             screenDataNew += "---\n";
             screenDataNew += $"Max capacity: {Elevator.MaxPassengerCapacity}\n";
+            screenDataNew += $"Speed: {1000 / Elevator.Speed}\n";
             screenDataNew += $"Passengers:\n";
             foreach (var passenger in Elevator.Passengers)
             {
                 screenDataNew += $"           {passenger.ToString()}\n";
             }
 
-            screenDataNew += "\n" + HotKeyDestription;
+            if (!Elevator.isInAutomaticMode)
+                screenDataNew += "\n" + HotKeyDestription;
 
             if (ConsoleBuffer != "")
             {
@@ -88,36 +90,36 @@ namespace Elevator
 
         private void UpdateModifiedLines(string screenDataOld, string screenDataNew)
         {
-            string[] screenDataRowsOld = screenDataOld.Split('\n');
-            string[] screenDataRowsNew = screenDataNew.Split('\n');
+            string[] dataRowsOld = screenDataOld.Split('\n');
+            string[] dataRowsNew = screenDataNew.Split('\n');
 
-            if (screenDataRowsNew.Length > screenDataOld.Length)
+            if (dataRowsNew.Length > dataRowsOld.Length)
             {
-                for (int i = 0; i < screenDataRowsNew.Length; i++)
+                for (int i = 0; i < dataRowsNew.Length; i++)
                 {
-                    if (i < screenDataOld.Length)
+                    if (i < dataRowsOld.Length)
                     {
-                        if (screenDataRowsOld[i] != screenDataRowsNew[i])
+                        if (dataRowsOld[i] != dataRowsNew[i])
                         {
-                            ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                            ReplaceConsoleLine(i, dataRowsNew[i] + "\n");
                         }
                     }
                     else
                     {
-                        ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                        ReplaceConsoleLine(i, dataRowsNew[i] + "\n");
                     }
 
                 }
             }
             else
             {
-                for (int i = 0; i < screenDataRowsOld.Length; i++)
+                for (int i = 0; i < dataRowsOld.Length; i++)
                 {
-                    if (i < screenDataRowsNew.Length)
+                    if (i < dataRowsNew.Length)
                     {
-                        if (screenDataRowsOld[i] != screenDataRowsNew[i])
+                        if (dataRowsOld[i] != dataRowsNew[i])
                         {
-                            ReplaceConsoleLine(i, screenDataRowsNew[i] + "\n");
+                            ReplaceConsoleLine(i, dataRowsNew[i] + "\n");
                         }
                     }
                     else
@@ -132,6 +134,7 @@ namespace Elevator
 
         public void AutomaticMode()
         {
+            Elevator.isInAutomaticMode = true;
             while (true)
             {
 

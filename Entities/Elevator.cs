@@ -14,9 +14,10 @@ namespace Elevator
         public Building Building { get; set; }
         public int MaxPassengerCapacity { get; set; } = 10;
         public GameEnvironment Screen { get; set; }
-        public int Speed { get; set; } = 800;
+        public int Speed { get; set; }
         public List<Passenger> Passengers { get; set; } = new List<Passenger>();
         public Direction Direction { get; set; } = Direction.Up;
+        public bool isInAutomaticMode { get; set; } = false;
 
         public Elevator(Building building, GameEnvironment screen, int speed)
         {
@@ -31,10 +32,15 @@ namespace Elevator
                 CurrentFloor += step;
         }
 
+        public void ChangeSpeed(int speed)
+        {
+            Speed = 1000 / speed;
+        }
+
         public void AddPassengersToElevator(List<Passenger> additionalPassengers)
         {
-            var passengersQuantity = Passengers.Count();
-            var additionalPassengersQuantity = additionalPassengers.Count();
+            var passengersQuantity = Passengers.Count;
+            var additionalPassengersQuantity = additionalPassengers.Count;
 
             var freeSpace = MaxPassengerCapacity - passengersQuantity;
             int quantityOfPassengersToStay;
